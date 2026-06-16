@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КИТ · Нейросети для дела — от А до Я</title>
+<meta name="description" content="Гайд для сотрудников КИТ: зачем нужны нейросети, как с ними работать и готовые промты под рабочие задачи.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ДИЗАЙН-ТОКЕНЫ  —  при ребрендинге меняй только эти значения
+   ============================================================ */
+:root{
+  /* Палитра «глубина / течение» — подставь сюда фирменные цвета КИТа */
+  --bg:        #07212B;   /* глубокий океан — основной фон */
+  --bg-2:      #0A2A36;   /* приподнятый фон секций */
+  --surface:   #103642;   /* поверхность карточек */
+  --surface-2: #16414E;   /* поверхность поверх карточек */
+  --line:      rgba(150,200,210,.12);
+  --line-2:    rgba(150,200,210,.20);
+
+  --text:      #EAF4F5;   /* основной текст */
+  --muted:     #93B0B8;   /* приглушённый текст */
+  --faint:     #5E7C85;   /* подписи, мета */
+
+  --brand:     #1EC9C2;   /* «течение» — фирменный акцент */
+  --brand-2:   #2E8FC4;   /* глубокая синь для градиента */
+  --brand-soft:rgba(30,201,194,.14);
+  --warm:      #FF7A45;   /* «буёк» — тёплый акцент для CTA */
+  --warm-soft: rgba(255,122,69,.14);
+
+  --radius:    18px;
+  --radius-sm: 12px;
+  --maxw:      1120px;
+
+  --font-display: 'Unbounded', sans-serif;
+  --font-body:    'Manrope', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+/* ============================================================
+   БАЗА
+   ============================================================ */
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  font-weight:400;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:inherit; text-decoration:none; }
+::selection{ background:var(--brand); color:var(--bg); }
+
+.wrap{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--brand);
+  font-weight:500;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+.eyebrow::before{
+  content:""; width:26px; height:1px; background:var(--brand); opacity:.6;
+}
+
+h1,h2,h3{ font-family:var(--font-display); font-weight:700; line-height:1.08; letter-spacing:-.01em; }
+
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--font-body); font-weight:600; font-size:.95rem;
+  padding:14px 24px; border-radius:999px; border:1px solid transparent;
+  cursor:pointer; transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
+  will-change:transform;
+}
+.btn-primary{ background:var(--warm); color:#1a0a02; box-shadow:0 8px 30px -8px var(--warm); }
+.btn-primary:hover{ transform:translateY(-3px); box-shadow:0 16px 44px -10px var(--warm); }
+.btn-ghost{ background:transparent; color:var(--text); border-color:var(--line-2); }
+.btn-ghost:hover{ border-color:var(--brand); color:var(--brand); transform:translateY(-3px); }
+.btn svg{ width:16px; height:16px; }
+
+/* ============================================================
+   НАВИГАЦИЯ
+   ============================================================ */
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 28px;
+  background:rgba(7,33,43,0);
+  border-bottom:1px solid transparent;
+  transition:background .35s ease, border-color .35s ease, padding .35s ease;
+  backdrop-filter:blur(0px);
+}
+.nav.scrolled{
+  background:rgba(7,33,43,.72);
+  border-bottom-color:var(--line);
+  backdrop-filter:blur(14px);
+  padding:12px 28px;
+}
+.brand{ display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:700; font-size:1.05rem; letter-spacing:.02em; }
+.brand .whale{ width:30px; height:30px; color:var(--brand); flex:none; }
+.brand b{ color:var(--text); }
+.brand span{ color:var(--faint); font-weight:500; font-size:.78rem; font-family:var(--font-mono); letter-spacing:.05em; }
+.nav-links{ display:flex; align-items:center; gap:30px; }
+.nav-links a{ font-size:.9rem; color:var(--muted); font-weight:500; transition:color .2s ease; position:relative; }
+.nav-links a:hover{ color:var(--text); }
+.nav-links a.cta{
+  background:var(--warm-soft); color:var(--warm); padding:9px 18px; border-radius:999px;
+  border:1px solid rgba(255,122,69,.35); font-weight:600;
+}
+.nav-links a.cta:hover{ background:var(--warm); color:#1a0a02; }
+.nav-burger{ display:none; background:none; border:none; color:var(--text); cursor:pointer; }
+
+/* ============================================================
+   ТЕЧЕНИЕ — фоновая анимация (сигнатура)
+   ============================================================ */
+.current{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+.current .blob{
+  position:absolute; border-radius:50%; filter:blur(70px); opacity:.5;
+  animation:drift 26s ease-in-out infinite;
+}
+.current .b1{ width:520px; height:520px; background:radial-gradient(circle,var(--brand),transparent 70%); top:-160px; left:-120px; }
+.current .b2{ width:440px; height:440px; background:radial-gradient(circle,var(--brand-2),transparent 70%); top:120px; right:-140px; animation-delay:-9s; }
+.current .b3{ width:360px; height:360px; background:radial-gradient(circle,var(--warm),transparent 70%); bottom:-160px; left:30%; opacity:.22; animation-delay:-16s; }
+@keyframes drift{
+  0%,100%{ transform:translate(0,0) scale(1); }
+  33%{ transform:translate(60px,40px) scale(1.08); }
+  66%{ transform:translate(-40px,30px) scale(.95); }
+}
+
+/* ============================================================
+   ГЕРОЙ
+   ============================================================ */
+.hero{ position:relative; min-height:100vh; display:flex; align-items:center; padding:120px 0 80px; }
+.hero .wrap{ position:relative; z-index:2; }
+.hero h1{
+  font-size:clamp(2.6rem, 6.5vw, 5rem);
+  font-weight:800;
+  max-width:16ch;
+  margin:26px 0 0;
+}
+.hero h1 .accent{ color:var(--brand); }
+.hero .lead{
+  font-size:clamp(1.05rem,2vw,1.3rem);
+  color:var(--muted); max-width:54ch; margin:26px 0 38px;
+}
+.hero-cta{ display:flex; gap:14px; flex-wrap:wrap; }
+.hero-stats{ display:flex; gap:42px; margin-top:60px; flex-wrap:wrap; }
+.hero-stats .s b{ font-family:var(--font-display); font-size:1.9rem; color:var(--text); display:block; }
+.hero-stats .s span{ font-size:.85rem; color:var(--faint); font-family:var(--font-mono); }
+
+/* анимация появления героя */
+.reveal-up{ opacity:0; transform:translateY(24px); animation:up .9s cubic-bezier(.2,.7,.2,1) forwards; }
+.d1{ animation-delay:.05s } .d2{ animation-delay:.18s } .d3{ animation-delay:.32s } .d4{ animation-delay:.46s } .d5{ animation-delay:.6s }
+@keyframes up{ to{ opacity:1; transform:translateY(0); } }
+
+/* ============================================================
+   СЕКЦИИ
+   ============================================================ */
+.block{ position:relative; padding:96px 0; }
+.block.alt{ background:var(--bg-2); }
+.block-head{ max-width:60ch; margin-bottom:54px; }
+.block-head h2{ font-size:clamp(1.9rem,4vw,3rem); margin:18px 0 16px; }
+.block-head p{ color:var(--muted); font-size:1.08rem; }
+
+/* появление по скроллу */
+.io{ opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+.io.in{ opacity:1; transform:translateY(0); }
+
+/* ----- карточки «зачем» ----- */
+.why-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.why-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:30px 26px; transition:transform .3s ease, border-color .3s ease;
+}
+.why-card:hover{ transform:translateY(-6px); border-color:var(--brand); }
+.why-card .ic{ width:46px; height:46px; border-radius:12px; background:var(--brand-soft); color:var(--brand);
+  display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+.why-card .ic svg{ width:24px; height:24px; }
+.why-card h3{ font-size:1.18rem; margin-bottom:10px; }
+.why-card p{ color:var(--muted); font-size:.96rem; }
+
+/* ----- «как работает» — миф/факт ----- */
+.howto{ display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:start; }
+.howto-text p{ color:var(--muted); margin-bottom:16px; font-size:1.05rem; }
+.howto-text strong{ color:var(--text); font-weight:600; }
+.compare{ display:flex; flex-direction:column; gap:14px; }
+.cmp{ border-radius:var(--radius-sm); padding:18px 20px; border:1px solid var(--line); }
+.cmp .tag{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; display:block; margin-bottom:8px; }
+.cmp.bad{ background:rgba(255,122,69,.06); } .cmp.bad .tag{ color:var(--warm); }
+.cmp.good{ background:var(--brand-soft); } .cmp.good .tag{ color:var(--brand); }
+.cmp p{ font-size:.95rem; color:var(--text); }
+
+/* ----- конструктор промта (сигнатура) ----- */
+.builder{ display:grid; grid-template-columns:.85fr 1.15fr; gap:36px; align-items:start; }
+.formula h3{ font-size:1.3rem; margin-bottom:8px; }
+.formula > p{ color:var(--muted); margin-bottom:24px; font-size:.98rem; }
+.chips{ display:flex; flex-direction:column; gap:12px; }
+.chip{
+  display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:14px 16px; cursor:pointer; transition:border-color .2s ease, background .2s ease;
+  font-family:var(--font-body); color:var(--text);
+}
+.chip:hover{ border-color:var(--line-2); }
+.chip.on{ border-color:var(--brand); background:var(--brand-soft); }
+.chip .dot{ width:18px; height:18px; border-radius:6px; border:2px solid var(--faint); flex:none; transition:.2s; position:relative; }
+.chip.on .dot{ border-color:var(--brand); background:var(--brand); }
+.chip.on .dot::after{ content:"✓"; position:absolute; inset:0; font-size:11px; color:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; }
+.chip .meta b{ display:block; font-weight:600; font-size:.98rem; }
+.chip .meta span{ font-size:.82rem; color:var(--muted); }
+
+.preview{ background:#0A2932; border:1px solid var(--line-2); border-radius:var(--radius); overflow:hidden; }
+.preview-bar{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02); }
+.preview-bar span{ font-family:var(--font-mono); font-size:.78rem; color:var(--faint); letter-spacing:.05em; }
+.preview-body{ padding:22px 22px 24px; font-family:var(--font-mono); font-size:.92rem; line-height:1.75; color:#CFE8EA; min-height:200px; }
+.preview-body .ln{ transition:opacity .3s ease, max-height .3s ease; }
+.preview-body .ln.hidden{ opacity:.18; }
+.preview-body .k{ color:var(--brand); }
+.preview-empty{ color:var(--faint); font-style:italic; }
+
+.copy-btn{
+  display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono);
+  font-size:.78rem; background:var(--brand-soft); color:var(--brand);
+  border:1px solid rgba(30,201,194,.3); border-radius:999px; padding:7px 14px; cursor:pointer;
+  transition:.2s;
+}
+.copy-btn:hover{ background:var(--brand); color:var(--bg); }
+.copy-btn.done{ background:var(--brand); color:var(--bg); }
+
+/* ----- примеры из жизни ----- */
+.tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px; }
+.tab{
+  font-family:var(--font-mono); font-size:.82rem; padding:9px 16px; border-radius:999px;
+  background:transparent; border:1px solid var(--line-2); color:var(--muted); cursor:pointer; transition:.2s;
+}
+.tab:hover{ color:var(--text); border-color:var(--brand); }
+.tab.on{ background:var(--text); color:var(--bg); border-color:var(--text); }
+.cases{ display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+.case{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px; display:none; flex-direction:column;
+}
+.case.show{ display:flex; animation:up .5s ease; }
+.case .role{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--brand); margin-bottom:10px; }
+.case h3{ font-size:1.15rem; margin-bottom:8px; line-height:1.3; }
+.case .sit{ color:var(--muted); font-size:.94rem; margin-bottom:18px; }
+.case .promptbox{ background:#0A2932; border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px; margin-bottom:14px; position:relative; }
+.case .promptbox .lbl{ font-family:var(--font-mono); font-size:.68rem; color:var(--faint); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.case .promptbox pre{ font-family:var(--font-mono); font-size:.84rem; line-height:1.65; color:#CFE8EA; white-space:pre-wrap; word-break:break-word; }
+.case .result{ font-size:.9rem; color:var(--muted); margin-top:auto; }
+.case .result b{ color:var(--text); font-weight:600; }
+
+/* ----- безопасность ----- */
+.safety{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.safety-card{ border-radius:var(--radius); padding:28px; border:1px solid var(--line); }
+.safety-card.ok{ background:var(--brand-soft); border-color:rgba(30,201,194,.3); }
+.safety-card.no{ background:var(--warm-soft); border-color:rgba(255,122,69,.3); }
+.safety-card h3{ font-size:1.15rem; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.safety-card.ok h3{ color:var(--brand); } .safety-card.no h3{ color:var(--warm); }
+.safety-card ul{ list-style:none; display:flex; flex-direction:column; gap:11px; }
+.safety-card li{ font-size:.95rem; color:var(--text); padding-left:24px; position:relative; }
+.safety-card.ok li::before{ content:"✓"; position:absolute; left:0; color:var(--brand); font-weight:700; }
+.safety-card.no li::before{ content:"✕"; position:absolute; left:0; color:var(--warm); font-weight:700; }
+.safety-note{ grid-column:1/-1; text-align:center; color:var(--muted); font-size:.95rem; margin-top:8px; }
+.safety-note b{ color:var(--text); }
+
+/* ----- финальный мост к витрине ----- */
+.bridge{ position:relative; padding:110px 0; text-align:center; overflow:hidden; }
+.bridge .wrap{ position:relative; z-index:2; }
+.bridge h2{ font-size:clamp(2rem,5vw,3.4rem); max-width:18ch; margin:18px auto 20px; }
+.bridge p{ color:var(--muted); font-size:1.1rem; max-width:50ch; margin:0 auto 36px; }
+
+footer{ border-top:1px solid var(--line); padding:36px 0; }
+footer .wrap{ display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; }
+footer p{ color:var(--faint); font-size:.85rem; font-family:var(--font-mono); }
+
+/* ============================================================
+   АДАПТИВ
+   ============================================================ */
+@media (max-width:900px){
+  .why-grid{ grid-template-columns:1fr; }
+  .howto,.builder,.cases,.safety{ grid-template-columns:1fr; }
+  .nav-links{ display:none; }
+  .nav-burger{ display:block; }
+  .block{ padding:72px 0; }
+}
+@media (max-width:560px){
+  .wrap{ padding:0 20px; }
+  .hero-stats{ gap:26px; }
+}
+
+/* доступность */
+:focus-visible{ outline:2px solid var(--brand); outline-offset:3px; border-radius:4px; }
+@media (prefers-reduced-motion:reduce){
+  *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  .reveal-up{ opacity:1; transform:none; }
+  .io{ opacity:1; transform:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- НАВИГАЦИЯ -->
+<nav class="nav" id="nav">
+  <a href="#top" class="brand">
+    <svg class="whale" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17c0-5 4-9 9-9 6 0 8 4 13 4 2 0 3-1 4-2-1 6-5 10-11 10H9c-3 0-6-1-6-3z"/>
+      <path d="M19 8c1-3 4-4 6-3-2 1-2 3-1 5"/>
+      <circle cx="10" cy="15" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="logo-text"><b>КИТ</b> · нейросети</span>
+  </a>
+  <div class="nav-links">
+    <a href="#why">Зачем</a>
+    <a href="#how">Основы</a>
+    <a href="#builder">Конструктор</a>
+    <a href="#cases">Примеры</a>
+    <a href="#safety">Безопасность</a>
+    <a href="https://daniodl.github.io/aitoolkitCDTO/" class="cta" target="_blank" rel="noopener">Витрина →</a>
+  </div>
+  <button class="nav-burger" aria-label="Открыть витрину" onclick="window.open('https://daniodl.github.io/aitoolkitCDTO/','_blank')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+</nav>
+
+<!-- ГЕРОЙ -->
+<header class="hero" id="top">
+  <div class="current">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  </div>
+  <div class="wrap">
+    <span class="eyebrow reveal-up d1">Гайд для сотрудников КИТ · от А до Я</span>
+    <h1 class="reveal-up d2">Нейросети — это не магия.<br><span class="accent">Это твой рабочий инструмент.</span></h1>
+    <p class="lead reveal-up d3">Без терминов и хайпа. Показываем на живых задачах КИТа: как сэкономить время на письмах, отчётах и рутине — и какой промт для этого написать. Просто откопируй и пользуйся.</p>
+    <div class="hero-cta reveal-up d4">
+      <a href="#why" class="btn btn-primary">Начать с основ
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+      <a href="https://daniodl.github.io/aitoolkitCDTO/" target="_blank" rel="noopener" class="btn btn-ghost">Открыть витрину инструментов</a>
+    </div>
+    <div class="hero-stats reveal-up d5">
+      <div class="s"><b>5 минут</b><span>чтобы освоить базу</span></div>
+      <div class="s"><b>6 ролей</b><span>с готовыми промтами</span></div>
+      <div class="s"><b>0 кода</b><span>нужно только печатать</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ЗАЧЕМ -->
+<section class="block" id="why">
+  <div class="wrap">
+    <div class="block-head io">
+      <span class="eyebrow">Зачем это лично тебе</span>
+      <h2>Меньше рутины — больше дела</h2>
+      <p>Нейросеть не заменит тебя. Она снимает скучную часть работы: первый черновик, длинный текст, однотипные ответы. Ты остаёшься тем, кто думает и решает.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card io">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Экономит время</h3>
+        <p>Письмо клиенту, текст вакансии или саммари совещания — за минуту вместо получаса. Дальше только правишь под себя.</p>
+      </div>
+      <div class="why-card io">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c1 1 1 2 1 3h6c0-1 0-2 1-3a7 7 0 0 0-4-12z"/></svg></div>
+        <h3>Помогает начать</h3>
+        <p>Не знаешь, с чего стартовать? Чистый лист пугает всех. Нейросеть даёт черновик, от которого легко оттолкнуться.</p>
+      </div>
+      <div class="why-card io">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M4 20h16M9 9l2 2 4-4"/></svg></div>
+        <h3>Поднимает качество</h3>
+        <p>Перепроверит текст, предложит варианты, подскажет, что упустил. Как второй взгляд коллеги, который всегда под рукой.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- КАК РАБОТАЕТ -->
+<section class="block alt" id="how">
+  <div class="wrap">
+    <div class="block-head io">
+      <span class="eyebrow">Как это работает простыми словами</span>
+      <h2>Очень умный собеседник, который делает ровно то, о чём просишь</h2>
+    </div>
+    <div class="howto">
+      <div class="howto-text io">
+        <p>Нейросеть прочитала огромное количество текстов и научилась продолжать мысль — подбирать самые подходящие слова к твоему запросу. Она <strong>не знает истину</strong> и не читает мысли. Она отвечает на то, что ты написал.</p>
+        <p>Отсюда главное правило: <strong>качество ответа = качество запроса</strong>. Чем точнее и подробнее просьба, тем полезнее результат. Расплывчатый вопрос — расплывчатый ответ.</p>
+        <p>Поэтому не нужно «уметь программировать». Нужно просто ясно объяснить задачу — как объяснил бы новому коллеге, который не в курсе контекста.</p>
+      </div>
+      <div class="compare io">
+        <div class="cmp bad">
+          <span class="tag">Так — слабо</span>
+          <p>«Напиши письмо клиенту про задержку»</p>
+        </div>
+        <div class="cmp good">
+          <span class="tag">Так — сильно</span>
+          <p>«Ты менеджер транспортной компании. Клиент важный, груз задержан на 2 дня из-за погоды. Напиши вежливое письмо: извинись, объясни причину, предложи решение. Тон — спокойный, до 120 слов.»</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- КОНСТРУКТОР ПРОМТА -->
+<section class="block" id="builder">
+  <div class="wrap">
+    <div class="block-head io">
+      <span class="eyebrow">Формула хорошего промта</span>
+      <h2>Собери запрос как конструктор</h2>
+      <p>Хороший промт держится на пяти блоках. Включай и выключай их слева — и смотри, как меняется запрос справа. Соберёшь свой — жми «Скопировать».</p>
+    </div>
+    <div class="builder">
+      <div class="formula io">
+        <h3>Пять блоков</h3>
+        <p>Не обязательно все сразу. Но чем больше блоков — тем точнее ответ.</p>
+        <div class="chips" id="chips">
+          <button class="chip on" data-key="role"><span class="dot"></span><span class="meta"><b>Роль</b><span>кем должна быть нейросеть</span></span></button>
+          <button class="chip on" data-key="ctx"><span class="dot"></span><span class="meta"><b>Контекст</b><span>что важно знать о ситуации</span></span></button>
+          <button class="chip on" data-key="task"><span class="dot"></span><span class="meta"><b>Задача</b><span>что именно сделать</span></span></button>
+          <button class="chip on" data-key="fmt"><span class="dot"></span><span class="meta"><b>Формат</b><span>в каком виде ответ</span></span></button>
+          <button class="chip on" data-key="tone"><span class="dot"></span><span class="meta"><b>Тон</b><span>каким голосом говорить</span></span></button>
+        </div>
+      </div>
+      <div class="preview">
+        <div class="preview-bar">
+          <span>твой промт</span>
+          <button class="copy-btn" id="copyPrompt">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            Скопировать
+          </button>
+        </div>
+        <div class="preview-body" id="previewBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ПРИМЕРЫ ИЗ ЖИЗНИ -->
+<section class="block alt" id="cases">
+  <div class="wrap">
+    <div class="block-head io">
+      <span class="eyebrow">Примеры из жизни КИТа</span>
+      <h2>Готовые промты под реальные задачи</h2>
+      <p>Выбери свою роль — и забирай промт целиком. Подставь свои детали в скобках и используй.</p>
+    </div>
+    <div class="tabs io" id="tabs">
+      <button class="tab on" data-role="all">Все</button>
+      <button class="tab" data-role="cs">Клиентский сервис</button>
+      <button class="tab" data-role="sales">Продажи</button>
+      <button class="tab" data-role="hr">HR</button>
+      <button class="tab" data-role="ops">Логистика</button>
+      <button class="tab" data-role="lead">Руководитель</button>
+    </div>
+    <div class="cases" id="caseGrid">
+
+      <article class="case show" data-role="cs">
+        <span class="role">Клиентский сервис</span>
+        <h3>Ответить клиенту о задержке груза</h3>
+        <p class="sit">Груз задержан, клиент недоволен, а письмо нужно написать спокойно и по делу.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Ты — вежливый менеджер по работе с клиентами транспортной компании. Клиент важный, его груз задержан на (2 дня) из-за (погодных условий). Напиши письмо: извинись, коротко объясни причину, предложи конкретное решение и новый срок. Тон — спокойный и уверенный, без оправданий. До 120 слов.</pre>
+        </div>
+        <p class="result">→ <b>Готовое письмо</b>, которое остаётся только проверить и отправить.</p>
+      </article>
+
+      <article class="case show" data-role="sales">
+        <span class="role">Продажи</span>
+        <h3>Отработать возражение «у вас дорого»</h3>
+        <p class="sit">Клиент сравнивает с конкурентом по цене, а ты хочешь показать ценность.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Ты — опытный менеджер по продажам грузоперевозок. Клиент говорит: «У вас дороже, чем у конкурентов». Дай 3 варианта ответа: каждый — короткий, без давления, переводит разговор с цены на ценность (сроки, сохранность, поддержка). Простым языком.</pre>
+        </div>
+        <p class="result">→ <b>3 заготовки</b> на выбор под стиль разговора.</p>
+      </article>
+
+      <article class="case show" data-role="hr">
+        <span class="role">HR · подбор</span>
+        <h3>Написать текст вакансии водителя</h3>
+        <p class="sit">Нужна вакансия, которую дочитают до конца и откликнутся.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Ты — HR-специалист транспортной компании. Составь текст вакансии «Водитель категории Е» для (города). Структура: о компании (2–3 строки), обязанности, требования, что предлагаем. Пиши живо, без канцелярита, на «ты». До 200 слов.</pre>
+        </div>
+        <p class="result">→ <b>Готовая вакансия</b> для публикации, останется добавить цифры.</p>
+      </article>
+
+      <article class="case show" data-role="ops">
+        <span class="role">Логистика · процессы</span>
+        <h3>Превратить заметки в чёткую инструкцию</h3>
+        <p class="sit">Есть хаотичные записи по процессу — нужен понятный регламент для команды.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Вот мои черновые заметки по приёмке груза: (вставь заметки). Преврати их в пошаговую инструкцию для нового сотрудника: пронумерованные шаги, простые формулировки, в конце — чек-лист «не забыть». Убери повторы.</pre>
+        </div>
+        <p class="result">→ <b>Структурированный регламент</b> вместо кучи разрозненных мыслей.</p>
+      </article>
+
+      <article class="case show" data-role="lead">
+        <span class="role">Руководитель</span>
+        <h3>Саммари длинного отчёта или совещания</h3>
+        <p class="sit">Прислали отчёт на 10 страниц, а времени читать целиком нет.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Вот текст отчёта: (вставь текст). Сделай саммари: 5 ключевых выводов, отдельно — список решений и задач с ответственными, если они упомянуты. Без воды, по делу. В конце — 2–3 вопроса, которые стоит уточнить.</pre>
+        </div>
+        <p class="result">→ <b>Суть на один экран</b> и понимание, что делать дальше.</p>
+      </article>
+
+      <article class="case show" data-role="lead">
+        <span class="role">Руководитель · коммуникации</span>
+        <h3>Подготовить объявление для команды</h3>
+        <p class="sit">Нужно донести изменение в процессе так, чтобы поняли и не возникло паники.</p>
+        <div class="promptbox">
+          <div class="lbl">Промт <button class="copy-btn copy-mini">копировать</button></div>
+          <pre>Ты — руководитель отдела. Нужно объявить команде об изменении: (опиши изменение). Напиши сообщение в корпоративный чат: что меняется, почему это хорошо, что делать сотрудникам, к кому идти с вопросами. Тон — спокойный и поддерживающий. Коротко.</pre>
+        </div>
+        <p class="result">→ <b>Готовое сообщение</b>, которое снимает тревогу и отвечает на вопросы заранее.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- БЕЗОПАСНОСТЬ -->
+<section class="block" id="safety">
+  <div class="wrap">
+    <div class="block-head io">
+      <span class="eyebrow">Правила безопасности</span>
+      <h2>Что можно, а что нельзя загружать</h2>
+      <p>Публичные нейросети — это внешний сервис. Всё, что ты вставляешь, может сохраниться на их стороне. Поэтому одно простое правило: данные компании и клиентов туда не попадают.</p>
+    </div>
+    <div class="safety">
+      <div class="safety-card ok io">
+        <h3>✓ Можно загружать</h3>
+        <ul>
+          <li>Общие и обезличенные тексты</li>
+          <li>Шаблоны писем, вакансий, инструкций</li>
+          <li>Свои черновики и идеи</li>
+          <li>Публичную информацию о рынке</li>
+          <li>Учебные и тренировочные задачи</li>
+        </ul>
+      </div>
+      <div class="safety-card no io">
+        <h3>✕ Нельзя загружать</h3>
+        <ul>
+          <li>Персональные данные клиентов и сотрудников</li>
+          <li>Договоры с реквизитами и суммами</li>
+          <li>Коммерческую тайну и внутренние финансы</li>
+          <li>Пароли, ключи, доступы</li>
+          <li>Любые данные под NDA</li>
+        </ul>
+      </div>
+      <p class="safety-note io">Сомневаешься — <b>обезличь данные</b> (убери имена, номера, суммы) или уточни у <b>службы информационной безопасности</b>. Лучше спросить, чем потом разбираться.</p>
+    </div>
+  </div>
+</section>
+
+<!-- МОСТ К ВИТРИНЕ -->
+<section class="bridge">
+  <div class="current">
+    <div class="blob b1" style="opacity:.3"></div>
+    <div class="blob b2" style="opacity:.3"></div>
+  </div>
+  <div class="wrap">
+    <span class="eyebrow" style="justify-content:center">Шаг следующий</span>
+    <h2>Знаешь зачем и как? Теперь выбери инструмент</h2>
+    <p>Все нейросети, доступные в КИТе, собраны в одной витрине: с подсказками, где что включать и для чего подходит. Открывай и пробуй прямо сейчас.</p>
+    <a href="https://daniodl.github.io/aitoolkitCDTO/" target="_blank" rel="noopener" class="btn btn-primary" style="font-size:1.05rem; padding:16px 30px">
+      Открыть витрину инструментов
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a href="#top" class="brand"><svg class="whale" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c0-5 4-9 9-9 6 0 8 4 13 4 2 0 3-1 4-2-1 6-5 10-11 10H9c-3 0-6-1-6-3z"/><path d="M19 8c1-3 4-4 6-3-2 1-2 3-1 5"/></svg> <b>КИТ</b></a>
+    <p>Внутренний гайд по работе с нейросетями · от А до Я</p>
+  </div>
+</footer>
+
+<script>
+/* ---- навбар при скролле ---- */
+const nav = document.getElementById('nav');
+addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 30));
+
+/* ---- появление секций по скроллу ---- */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: .12 });
+document.querySelectorAll('.io').forEach(el => io.observe(el));
+
+/* ---- КОНСТРУКТОР ПРОМТА ---- */
+const lines = {
+  role: '<span class="ln" data-k="role">Ты — <span class="k">вежливый менеджер по работе с клиентами транспортной компании</span>.</span>',
+  ctx:  '<span class="ln" data-k="ctx"><span class="k">Клиент важный, его груз задержан на 2 дня из-за погодных условий.</span></span>',
+  task: '<span class="ln" data-k="task">Напиши письмо: извинись, объясни причину и предложи решение.</span>',
+  fmt:  '<span class="ln" data-k="fmt"><span class="k">Объём — до 120 слов, без сложных терминов.</span></span>',
+  tone: '<span class="ln" data-k="tone"><span class="k">Тон — спокойный и уверенный, без лишних оправданий.</span></span>'
+};
+const plain = {
+  role: 'Ты — вежливый менеджер по работе с клиентами транспортной компании.',
+  ctx:  'Клиент важный, его груз задержан на 2 дня из-за погодных условий.',
+  task: 'Напиши письмо: извинись, объясни причину и предложи решение.',
+  fmt:  'Объём — до 120 слов, без сложных терминов.',
+  tone: 'Тон — спокойный и уверенный, без лишних оправданий.'
+};
+const order = ['role','ctx','task','fmt','tone'];
+const active = new Set(order);
+const body = document.getElementById('previewBody');
+
+function renderPrompt(){
+  const on = order.filter(k => active.has(k));
+  if (!on.length){ body.innerHTML = '<span class="preview-empty">Включи хотя бы один блок слева…</span>'; return; }
+  body.innerHTML = on.map(k => lines[k]).join(' ');
+}
+function plainPrompt(){ return order.filter(k => active.has(k)).map(k => plain[k]).join(' '); }
+
+document.querySelectorAll('#chips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const k = chip.dataset.key;
+    if (active.has(k)) active.delete(k); else active.add(k);
+    chip.classList.toggle('on', active.has(k));
+    renderPrompt();
+  });
+});
+renderPrompt();
+
+/* ---- копирование (универсальное) ---- */
+function copyText(text, btn, label){
+  const done = () => { const t = btn.textContent; btn.classList.add('done'); btn.textContent = '✓ Скопировано'; setTimeout(()=>{ btn.classList.remove('done'); btn.textContent = t; }, 1600); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text, done));
+  } else fallback(text, done);
+}
+function fallback(text, cb){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); cb(); }
+
+document.getElementById('copyPrompt').addEventListener('click', function(){ copyText(plainPrompt(), this); });
+document.querySelectorAll('.copy-mini').forEach(btn => {
+  btn.addEventListener('click', function(){
+    const pre = this.closest('.promptbox').querySelector('pre');
+    copyText(pre.textContent.trim(), this);
+  });
+});
+
+/* ---- табы примеров ---- */
+const tabs = document.getElementById('tabs');
+const cases = [...document.querySelectorAll('#caseGrid .case')];
+tabs.addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  const r = t.dataset.role;
+  cases.forEach(c => c.classList.toggle('show', r === 'all' || c.dataset.role === r));
+});
+</script>
+</body>
+</html>
